@@ -37,6 +37,23 @@ jobs:
           }
           $version = (Get-Content VERSION -Raw).Trim()
           & ".\dist\deskflow-game-lock-v$version-windows-x64\Install.ps1" -WhatIf
+      - name: Verify install and uninstall on the clean Windows runner
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $version = (Get-Content VERSION -Raw).Trim()
+          $package = Join-Path $PWD "dist/deskflow-game-lock-v$version-windows-x64"
+          $installed = Join-Path $env:LOCALAPPDATA 'DeskflowGameLock'
+          if (Test-Path -LiteralPath $installed) { throw 'Integration check requires a clean runner.' }
+          & (Join-Path $package 'Install.ps1') -NoLaunch
+          if (-not (Test-Path -LiteralPath (Join-Path $installed 'DeskflowAutoLock.exe'))) { throw 'Executable was not installed.' }
+          $startup = Get-ItemPropertyValue -LiteralPath 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Run' -Name DeskflowAutoLock
+          if ($startup -ne ('"' + (Join-Path $installed 'DeskflowAutoLock.exe') + '"')) { throw 'Startup entry does not point at the installed executable.' }
+          & (Join-Path $package 'Uninstall.ps1')
+          if (Test-Path -LiteralPath $installed) { throw 'Uninstall left the installation folder behind.' }
+          $startup = Get-ItemPropertyValue -LiteralPath 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Run' -Name DeskflowAutoLock -ErrorAction SilentlyContinue
+          if ($null -ne $startup) { throw 'Uninstall left the startup entry behind.' }
+          Write-Output 'Install/uninstall round trip passed.'
       - uses: actions/upload-artifact@v4
         with:
           name: windows-release
