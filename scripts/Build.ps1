@@ -30,14 +30,14 @@ if ($Package) {
     $packageRoot = Join-Path $dist "deskflow-game-lock-v$version-windows-x64"
     New-Item -ItemType Directory -Path $packageRoot -Force | Out-Null
     Copy-Item -LiteralPath $exe -Destination $packageRoot -Force
-    foreach ($name in @('README.md', 'README.en.md', 'LICENSE', 'VERSION')) {
+    foreach ($name in @('README.md', 'LICENSE', 'VERSION')) {
         Copy-Item -LiteralPath (Join-Path $repoRoot $name) -Destination $packageRoot -Force
     }
     foreach ($name in @('Install.cmd', 'Install.ps1', 'Uninstall.cmd', 'Uninstall.ps1')) {
         Copy-Item -LiteralPath (Join-Path $repoRoot "install\$name") -Destination $packageRoot -Force
     }
     # Explicit allowlist: never include logs, local settings, screenshots, or test binaries.
-    $names = @('DeskflowAutoLock.exe', 'README.md', 'README.en.md', 'LICENSE', 'VERSION', 'Install.cmd', 'Install.ps1', 'Uninstall.cmd', 'Uninstall.ps1')
+    $names = @('DeskflowAutoLock.exe', 'README.md', 'LICENSE', 'VERSION', 'Install.cmd', 'Install.ps1', 'Uninstall.cmd', 'Uninstall.ps1')
     $archive = Join-Path $dist "deskflow-game-lock-v$version-windows-x64.zip"
     Compress-Archive -LiteralPath @($names | ForEach-Object { Join-Path $packageRoot $_ }) -DestinationPath $archive -Force
     $hash = (Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash.ToLowerInvariant()

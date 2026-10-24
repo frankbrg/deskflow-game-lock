@@ -1,122 +1,94 @@
 # Deskflow Game Lock
 
-**Garde la souris dans le jeu quand le jeu la confine. Retrouve le passage vers le Mac quand il la libère.**
+**Keep Deskflow on your gaming PC while the game confines the pointer. Allow switching again when the game releases it.**
 
-[Télécharger la version Windows](https://github.com/frankbrg/deskflow-game-lock/releases/latest) · [English](README.en.md) · [Signaler un problème](https://github.com/frankbrg/deskflow-game-lock/issues)
+[Download for Windows](https://github.com/frankbrg/deskflow-game-lock/releases/latest) · [Report an issue](https://github.com/frankbrg/deskflow-game-lock/issues)
 
-Petit compagnon Windows pour [Deskflow](https://github.com/deskflow/deskflow), le logiciel de partage de souris et de clavier entre ordinateurs. Il évite de basculer accidentellement vers un autre ordinateur pendant une partie, sans bloquer systématiquement les vidéos en plein écran.
+A small Windows companion for [Deskflow](https://github.com/deskflow/deskflow). It follows actual Windows mouse confinement instead of blocking every fullscreen application. A fullscreen video with a free pointer remains free to switch to your Mac or another Deskflow client.
 
-> **Version initiale expérimentale.** Testée avec Windows 11, Deskflow **1.27.0 en mode serveur/service** et Cities: Skylines II. La détection suit le confinement Windows de la souris ; elle ne reconnaît pas tous les jeux. La limite des configurations avec un seul écran physique est expliquée ci-dessous.
+> **Experimental first release.** Tested with Windows 11, Deskflow **1.27.0 in server/service mode**, and Cities: Skylines II. It is not a universal game detector. Read the single-monitor limitation before installing.
 
-## Ce que ça change
+## Requirements
 
-| Situation | Comportement |
+- Windows 10/11 **x64**, running as the Deskflow **server**.
+- .NET Framework **4.8 or later**; no SDK needed for the compiled release.
+- Deskflow 1.27.0 with its Windows service and **Info** logging or more verbose.
+- Default log file: `%ProgramData%\Deskflow\deskflow-daemon.log`.
+- Deskflow's default **Scroll Lock** cursor-lock action must be enabled and must not have been replaced with a custom lock hotkey.
+
+Nothing is installed on the Mac/client. Other Deskflow versions and custom log paths have not been validated.
+
+### Single Windows monitor limitation
+
+If a game's confinement rectangle equals the entire Windows desktop, Windows reports the same rectangle as an unrestricted pointer. This version cannot distinguish them. This commonly affects fullscreen games on a PC with **one physical Windows monitor**; a Mac connected through Deskflow is not another Windows monitor.
+
+Confinement to a smaller window or a point may still work. With multiple Windows monitors, confinement to one monitor can be detected. This conservative behavior avoids treating fullscreen video as mouse confinement.
+
+## Install
+
+1. Get Deskflow working between your computers first.
+2. Open [Releases](https://github.com/frankbrg/deskflow-game-lock/releases/latest) and download **`deskflow-game-lock-v0.1.0-windows-x64.zip`** from **Assets**, not the source-code archives.
+3. **Extract the whole ZIP**, then double-click **`Install.cmd`**.
+4. Find the tray icon near the Windows clock, possibly under hidden icons.
+
+Installs for the current user into **`%LOCALAPPDATA%\DeskflowGameLock`**, creates Start menu launch/uninstall shortcuts, and enables startup at sign-in. No administrator permissions are requested. Startup can be disabled in the tray menu.
+
+The `.cmd` launchers run the included local PowerShell scripts. Their `ExecutionPolicy Bypass` option applies only to that PowerShell process; it does not change the saved Windows execution policy. The executable is not digitally signed in this initial release.
+
+**Portable mode:** extract to a writable permanent folder and run **`DeskflowAutoLock.exe`** directly. No installation script is needed. If you enable startup from the tray menu, keep the executable at that path.
+
+## Use
+
+| Situation | Result |
 | --- | --- |
-| Vidéo ou navigateur en plein écran, pointeur libre | Le passage vers le Mac reste autorisé. |
-| Jeu qui confine la souris, même en mode fenêtré ou sans bordures | Deskflow est verrouillé sur le PC. |
-| Menu de pause qui libère le pointeur | Le passage vers le Mac est rétabli automatiquement. |
-| Alt+Tab et libération du pointeur par le jeu | Le verrouillage automatique est retiré. |
-| Verrouillage manuel déjà activé | Il est conservé. |
+| Fullscreen video or browser, pointer unrestricted | Switching stays allowed. |
+| Game confines the pointer, windowed/borderless/fullscreen | Deskflow locks to the PC. |
+| Pause menu releases confinement | Switching is restored automatically. |
+| Alt+Tab releases the pointer | The automatic lock is removed. |
+| Existing manual lock | Preserved. |
 
-Ce n'est **pas** un détecteur de plein écran, ni une liste de jeux. Le signal utilisé est la zone dans laquelle Windows autorise réellement le déplacement du pointeur.
+**Ctrl+Alt+F12** or double-clicking the tray icon pauses/resumes automation. Right-click the icon for options. **Scroll Lock** manually unlocks Deskflow; that override is respected until confinement is released or the foreground window changes. Only locks created by this helper are automatically removed.
 
-## Prérequis
+Use **Run at Windows sign-in** to enable/disable automatic startup, **Quit** to exit, or **Quit and disable startup** to exit and remove startup.
 
-- **Windows 10 ou 11, x64**, sur le PC qui partage sa souris et son clavier.
-- **.NET Framework 4.8 ou ultérieur** — aucun SDK .NET n'est nécessaire pour utiliser la version compilée.
-- Deskflow **1.27.0**, configuré comme **serveur**, avec son service Windows et le journal au niveau **Info** ou plus détaillé.
-- Journal Deskflow à son emplacement standard : `%ProgramData%\Deskflow\deskflow-daemon.log`.
-- Raccourci de verrouillage Deskflow par défaut : **Arrêt défil / Scroll Lock**. Ne pas désactiver cette fonction ni remplacer l'action de verrouillage par un autre raccourci.
+### Test window
 
-Rien à installer sur le Mac ou les autres clients Deskflow. Les autres versions de Deskflow et les journaux personnalisés ne sont pas validés.
-
-### Important : un seul écran physique côté Windows
-
-Si un jeu confine le pointeur exactement à tout le bureau Windows, `GetClipCursor` renvoie le même rectangle qu'en mode libre. Cette version ne peut pas distinguer ces deux états.
-
-Cela concerne notamment un jeu en plein écran sur un PC avec **un seul écran physique Windows**. Un Mac connecté par Deskflow ne compte pas comme écran Windows supplémentaire. Le confinement à une fenêtre plus petite ou à un point peut tout de même être détecté.
-
-Sur un PC avec plusieurs écrans Windows, le confinement à l'un d'eux est détectable. Ce comportement conservateur évite de rebloquer les vidéos simplement parce qu'elles sont en plein écran.
-
-## Installation en quelques clics
-
-1. Installer et faire fonctionner Deskflow entre les deux ordinateurs.
-2. Ouvrir la page [Releases](https://github.com/frankbrg/deskflow-game-lock/releases/latest).
-3. Télécharger **`deskflow-game-lock-v0.1.0-windows-x64.zip`** dans **Assets**. Les archives « Source code » sont destinées au développement.
-4. **Extraire tout le ZIP** dans un dossier, puis double-cliquer sur **`Install.cmd`**.
-5. Une icône apparaît près de l'horloge Windows ; elle peut se trouver dans les icônes masquées.
-
-L'installation se fait pour l'utilisateur courant dans **`%LOCALAPPDATA%\DeskflowGameLock`**, ajoute deux raccourcis au menu Démarrer et active le lancement à l'ouverture de session. Aucun droit administrateur n'est demandé. Le démarrage automatique peut être décoché dans le menu de l'icône.
-
-Les fichiers `.cmd` lancent les scripts PowerShell locaux fournis dans l'archive. Leur option `ExecutionPolicy Bypass` ne concerne que ce processus et ne modifie pas la stratégie Windows enregistrée. Le binaire n'est pas signé numériquement ; une signature éditeur n'est pas fournie dans cette première version.
-
-### Utilisation portable
-
-Extraire le ZIP dans un dossier où l'utilisateur peut écrire, puis lancer **`DeskflowAutoLock.exe`**. Aucun script d'installation n'est requis. Garder ce dossier à son emplacement si le démarrage Windows est activé depuis l'icône.
-
-## Commandes utiles
-
-| Action | Commande |
-| --- | --- |
-| Mettre la protection en pause / la reprendre | **Ctrl+Alt+F12** ou double-clic sur l'icône |
-| Accéder aux options | Clic droit sur l'icône |
-| Déverrouiller manuellement Deskflow | **Arrêt défil / Scroll Lock** |
-| Activer ou désactiver le lancement automatique | **Démarrer avec Windows**, dans le menu de l'icône |
-| Quitter sans retirer le démarrage automatique | **Quitter** |
-| Quitter et retirer le démarrage automatique | **Quitter et désactiver le démarrage** |
-
-Un déverrouillage manuel est respecté jusqu'à la libération de la capture ou au changement de fenêtre. Le programme retire seulement les verrouillages qu'il a lui-même activés.
-
-## Vérifier que ça marche
-
-Dans **Cities: Skylines II**, reprendre une partie puis ouvrir le menu de pause : le verrouillage doit suivre la capture et la libération de la souris. La pause de la **simulation** n'est pas nécessairement la même chose que le menu de pause ; si le jeu reste confiné, la protection reste active.
-
-Une fenêtre de test est aussi incluse dans le programme. Depuis PowerShell, dans le dossier contenant l'exécutable :
+With the helper running, open PowerShell in its folder and run:
 
 ```powershell
 .\DeskflowAutoLock.exe --test-window
 ```
 
-- **Espace** : simuler la capture du jeu / sa libération dans un menu.
-- **F11** : passer du mode fenêtre au plein écran et inversement.
-- **Échap** : fermer la fenêtre de test.
+**Space** toggles confinement, **F11** toggles fullscreen, and **Escape** closes the window. Fullscreen alone must not lock Deskflow. Confinement must lock it even in windowed mode; releasing confinement must unlock it without changing windows.
 
-Le plein écran seul ne doit pas verrouiller Deskflow. La capture doit le verrouiller, même dans la petite fenêtre.
+## Remove or update
 
-## Désinstallation et mises à jour
+**Installed mode:** run **Uninstall Deskflow Game Lock** from the Start menu, or `Uninstall.cmd` from the extracted release. It removes the helper, its logs, shortcuts, and startup entry. Extra files placed in the installation folder are preserved. Deskflow itself remains installed.
 
-**Installation classique :** ouvrir **Uninstall Deskflow Game Lock** dans le menu Démarrer, ou lancer `Uninstall.cmd` depuis l'archive. Le programme, ses journaux locaux, ses raccourcis et son entrée de démarrage sont retirés. Les fichiers supplémentaires éventuellement ajoutés au dossier sont conservés. **Deskflow reste installé.**
+**Portable mode:** choose **Quit and disable startup**, then delete the extracted folder.
 
-**Mode portable :** choisir **Quitter et désactiver le démarrage**, puis supprimer le dossier extrait.
+**Update:** extract the new release and rerun `Install.cmd`. The existing instance is asked to release its lock and exit before replacement. Installation enables Windows startup by default.
 
-**Mise à jour :** extraire la nouvelle archive et relancer `Install.cmd`. L'ancienne instance reçoit une demande d'arrêt propre avant le remplacement du programme. L'installateur réactive le démarrage Windows par défaut.
+## Troubleshooting and limitations
 
-## Dépannage
+- If nothing locks, check Deskflow's service, Info log, Scroll Lock action, and the single-monitor limitation.
+- If an action has no Deskflow log acknowledgement within two seconds, automation pauses. Check the log before resuming with Ctrl+Alt+F12.
+- A game may keep confinement enabled inside a menu. Pausing the simulation is not necessarily the same as releasing the pointer. Use Scroll Lock for a manual override.
+- Games using recentering without `ClipCursor` may not be detected. Elevated games or games filtering synthetic input may prevent toggling. Anti-cheat compatibility is not certified.
+- If the process is force-killed while locked, press Scroll Lock to release Deskflow.
+- `status.txt` and `activity.log` stay next to the executable. They include state, screen coordinates, and process names. Review/redact them before posting a public issue.
 
-| Problème | Vérification |
-| --- | --- |
-| Rien ne se verrouille | Vérifier le service Deskflow, son journal Info, le raccourci Scroll Lock et la limite « un seul écran ». |
-| Protection en pause après une erreur | L'action n'a pas été confirmée par Deskflow en deux secondes. Vérifier le journal et reprendre avec Ctrl+Alt+F12. |
-| Un menu reste bloqué | Le jeu peut conserver le confinement dans ce menu. Arrêt défil permet de forcer le déverrouillage. |
-| Le raccourci Ctrl+Alt+F12 est utilisé ailleurs | Utiliser le menu de l'icône ; un échec d'enregistrement est indiqué dans `activity.log`. |
-| Jeu exécuté en administrateur ou filtrant les entrées synthétiques | Le verrouillage peut échouer ; ce cas n'a pas été validé. |
-| Programme arrêté de force, souris toujours verrouillée | Appuyer sur Arrêt défil pour retirer le verrouillage de Deskflow. |
+**Verified:** Cities: Skylines II during gameplay and its pause menu, plus confined windowed/fullscreen test windows and fullscreen without confinement. **Not verified:** Battlefield 6 and other game engines.
 
-`status.txt` et `activity.log` sont enregistrés à côté du programme. Ils contiennent l'état, les rectangles d'écran et le nom du processus concerné. Ils restent locaux. Avant de joindre un journal à une issue publique, relire son contenu et retirer les informations personnelles éventuelles.
+## How it works
 
-## Fonctionnement et limites
+The helper reads [`GetClipCursor`](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getclipcursor) every 50 ms, compares confinement against the physical Windows virtual desktop, and checks that it matches the foreground window. It toggles Deskflow's native lock through Scroll Lock and confirms the change in Deskflow's log. Release is debounced for 150 ms.
 
-Toutes les 50 ms, le programme lit [`GetClipCursor`](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getclipcursor), compare le rectangle au bureau virtuel Windows et vérifie sa correspondance avec la fenêtre au premier plan. Il utilise ensuite le verrouillage natif de Deskflow via Scroll Lock, et attend sa confirmation dans le journal Deskflow. La libération est temporisée de 150 ms pour éviter les transitions brèves.
+No game-memory reading, code injection into games, screenshot capture, network requests, or modifications to game/Deskflow settings. This is mouse-confinement detection, not semantic pause-menu recognition or an allowlist of game names.
 
-- Aucune modification de la configuration Deskflow ou des paramètres du jeu.
-- Aucun code injecté dans le jeu, aucune lecture de sa mémoire, aucune capture d'écran et aucun envoi réseau par le programme.
-- Un confinement persistant dans un menu reste un confinement : il n'existe pas de détection universelle de la « pause ».
-- Les jeux qui recentrent le pointeur sans utiliser `ClipCursor` peuvent ne pas être détectés. La compatibilité avec les systèmes anti-triche n'est pas certifiée.
-- **Cities: Skylines II a été vérifié en jeu et dans son menu de pause. Battlefield 6 n'a pas été testé.**
+## Build
 
-## Compiler et contribuer
-
-Le code est en C#, avec Windows Forms et les API Windows. La compilation utilise le compilateur fourni avec .NET Framework ; pas de package NuGet ni de dépendance à télécharger.
+C# / Windows Forms using the .NET Framework compiler already installed on Windows. No NuGet packages or SDK downloads.
 
 ```powershell
 git clone https://github.com/frankbrg/deskflow-game-lock.git
@@ -124,10 +96,10 @@ cd deskflow-game-lock
 powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\Build.ps1 -RunTests -Package
 ```
 
-Résultats : `bin/DeskflowAutoLock.exe`, archive et empreinte SHA-256 dans `dist/`. Dix contrôles de régression couvrent le confinement fenêtré, les coordonnées négatives, l'absence de confinement, le cas mono-écran et les rectangles invalides. Ils ne remplacent pas des essais avec chaque moteur de jeu.
+Outputs: `bin/DeskflowAutoLock.exe`, a ZIP and `SHA256SUMS.txt` in `dist/`. Ten regression checks cover confined windows, negative coordinates, unrestricted fullscreen, single-monitor ambiguity, and invalid rectangles. They do not replace real-game testing.
 
-Pour signaler un problème, indiquer les versions Windows et Deskflow, le nombre d'écrans physiques Windows, le jeu, le mode d'affichage et la différence entre le jeu et son menu de pause.
+When reporting an issue, include Windows/Deskflow versions, physical Windows monitor count, game name/display mode, and whether confinement differs between gameplay and the menu.
 
-## Licence
+## License
 
-[MIT](LICENSE). Projet indépendant, non affilié à Deskflow ou aux éditeurs des jeux cités. Deskflow n'est pas inclus dans l'archive.
+[MIT](LICENSE). Independent project, unaffiliated with Deskflow or game publishers. Deskflow is not bundled.

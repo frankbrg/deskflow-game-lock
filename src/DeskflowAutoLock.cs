@@ -95,19 +95,19 @@ internal sealed class Guard : ApplicationContext
     {
         locked = Control.IsKeyLocked(Keys.Scroll);
         ReadLog(true);
-        statusItem = new ToolStripMenuItem("Initialisation") { Enabled = false };
-        enabledItem = new ToolStripMenuItem("Protection active") { Checked = true, CheckOnClick = false };
+        statusItem = new ToolStripMenuItem("Initializing") { Enabled = false };
+        enabledItem = new ToolStripMenuItem("Protection enabled") { Checked = true, CheckOnClick = false };
         enabledItem.Click += delegate { Toggle(); };
-        startupItem = new ToolStripMenuItem("Démarrer avec Windows") { Checked = Program.StartupEnabled() };
+        startupItem = new ToolStripMenuItem("Run at Windows sign-in") { Checked = Program.StartupEnabled() };
         startupItem.Click += delegate { Program.SetStartup(!Program.StartupEnabled()); startupItem.Checked = Program.StartupEnabled(); };
         ContextMenuStrip menu = new ContextMenuStrip();
         menu.Items.Add(statusItem);
         menu.Items.Add(enabledItem);
         menu.Items.Add(startupItem);
         menu.Items.Add(new ToolStripSeparator());
-        menu.Items.Add("Quitter", null, delegate { ExitThread(); });
-        menu.Items.Add("Quitter et désactiver le démarrage", null, delegate { Program.SetStartup(false); ExitThread(); });
-        tray = new NotifyIcon { Icon = SystemIcons.Shield, Text = "Deskflow : respect de la capture souris", ContextMenuStrip = menu, Visible = true };
+        menu.Items.Add("Quit", null, delegate { ExitThread(); });
+        menu.Items.Add("Quit and disable startup", null, delegate { Program.SetStartup(false); ExitThread(); });
+        tray = new NotifyIcon { Icon = SystemIcons.Shield, Text = "Deskflow: mouse confinement protection", ContextMenuStrip = menu, Visible = true };
         tray.DoubleClick += delegate { Toggle(); };
         hotkey = new HotkeyWindow(Toggle);
         timer = new System.Windows.Forms.Timer { Interval = 50 };
@@ -196,7 +196,7 @@ internal sealed class Guard : ApplicationContext
             enabled = false;
             enabledItem.Checked = false;
             Program.Log("ERROR no Deskflow acknowledgement; automation paused");
-            tray.ShowBalloonTip(6000, "Deskflow : protection en pause", "Le verrouillage n'a pas été confirmé. Arrêt défil reste disponible pour déverrouiller manuellement.", ToolTipIcon.Warning);
+            tray.ShowBalloonTip(6000, "Deskflow: protection paused", "The lock change was not confirmed. Press Scroll Lock to unlock manually if needed.", ToolTipIcon.Warning);
         }
         IntPtr window = Native.GetForegroundWindow();
         captured = Native.IsMouseConfined(window, out captureDetail);
@@ -241,9 +241,9 @@ internal sealed class Guard : ApplicationContext
 
     private void UpdateStatus()
     {
-        string status = !enabled ? "En pause" : !logAvailable ? "Journal Deskflow inaccessible" : pending.HasValue ? "Changement en cours" : owned && locked ? "Souris capturée : passage bloqué" : locked ? "Verrouillage manuel conservé" : "Souris libre : passage autorisé";
+        string status = !enabled ? "Paused" : !logAvailable ? "Deskflow log unavailable" : pending.HasValue ? "Changing lock state" : owned && locked ? "Mouse confined: switching blocked" : locked ? "Manual lock preserved" : "Mouse free: switching allowed";
         statusItem.Text = status;
-        tray.Text = "Deskflow : " + status;
+        tray.Text = "Deskflow: " + status;
         tray.Icon = owned && locked ? SystemIcons.Hand : SystemIcons.Shield;
         try
         {
@@ -373,7 +373,7 @@ internal sealed class TestWindow : Form
     private readonly Label description;
     internal TestWindow()
     {
-        Text = "Test Deskflow AutoLock";
+        Text = "Deskflow Game Lock Test";
         Width = 900; Height = 450; StartPosition = FormStartPosition.CenterScreen;
         BackColor = Color.FromArgb(22, 28, 42); ForeColor = Color.White; KeyPreview = true;
         description = new Label { Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleCenter, Font = new Font("Segoe UI", 18) };
@@ -409,6 +409,6 @@ internal sealed class TestWindow : Form
             ownsClip = true;
         }
         else ReleaseClip();
-        description.Text = "Test de la capture souris\n\n" + (captureRequested ? "JEU : souris confinée" : "PAUSE / VIDÉO : souris libre") + "\n\nEspace : capture / libération\nF11 : plein écran / fenêtre\nF10 : agrandir\nÉchap : fermer";
+        description.Text = "Mouse confinement test\n\n" + (captureRequested ? "GAME: pointer confined" : "MENU / VIDEO: pointer free") + "\n\nSpace: confine / release\nF11: fullscreen / windowed\nF10: maximize\nEscape: close";
     }
 }

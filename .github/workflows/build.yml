@@ -19,7 +19,7 @@ jobs:
   build:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
       - name: Build, run regression checks and package
@@ -51,10 +51,10 @@ jobs:
           if ($startup -ne ('"' + (Join-Path $installed 'DeskflowAutoLock.exe') + '"')) { throw 'Startup entry does not point at the installed executable.' }
           & (Join-Path $package 'Uninstall.ps1')
           if (Test-Path -LiteralPath $installed) { throw 'Uninstall left the installation folder behind.' }
-          $startup = Get-ItemPropertyValue -LiteralPath 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Run' -Name DeskflowAutoLock -ErrorAction SilentlyContinue
+          $startup = [Microsoft.Win32.Registry]::GetValue('HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run', 'DeskflowAutoLock', $null)
           if ($null -ne $startup) { throw 'Uninstall left the startup entry behind.' }
           Write-Output 'Install/uninstall round trip passed.'
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: windows-release
           path: |
@@ -70,10 +70,10 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: windows-release
           path: dist

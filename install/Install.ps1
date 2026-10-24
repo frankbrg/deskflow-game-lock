@@ -11,7 +11,7 @@ if ($null -eq $runtime -or $runtime.Release -lt 528040) { throw '.NET Framework 
 $targetDirectory = [IO.Path]::GetFullPath((Join-Path $env:LOCALAPPDATA 'DeskflowGameLock'))
 $targetExe = Join-Path $targetDirectory 'DeskflowAutoLock.exe'
 $shortcutDirectory = Join-Path ([Environment]::GetFolderPath('Programs')) 'Deskflow Game Lock'
-$files = @('DeskflowAutoLock.exe', 'README.md', 'README.en.md', 'LICENSE', 'VERSION', 'Install.cmd', 'Install.ps1', 'Uninstall.cmd', 'Uninstall.ps1')
+$files = @('DeskflowAutoLock.exe', 'README.md', 'LICENSE', 'VERSION', 'Install.cmd', 'Install.ps1', 'Uninstall.cmd', 'Uninstall.ps1')
 foreach ($file in $files) {
     if (-not (Test-Path -LiteralPath (Join-Path $PSScriptRoot $file))) { throw "Missing release file: $file" }
 }

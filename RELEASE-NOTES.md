@@ -1,12 +1,10 @@
 # Deskflow Game Lock 0.1.0
 
-Première version publique / First public release.
+First public release.
 
 ## Installation
 
-**Français :** télécharger `deskflow-game-lock-v0.1.0-windows-x64.zip`, extraire tout le ZIP, puis lancer `Install.cmd`. Pour un usage portable, lancer directement `DeskflowAutoLock.exe`. Le [README](https://github.com/frankbrg/deskflow-game-lock#readme) détaille les prérequis, les raccourcis et la désinstallation.
-
-**English:** download `deskflow-game-lock-v0.1.0-windows-x64.zip`, extract the complete archive, and run `Install.cmd`. For portable use, run `DeskflowAutoLock.exe` directly. See the [English README](https://github.com/frankbrg/deskflow-game-lock/blob/main/README.en.md).
+Download `deskflow-game-lock-v0.1.0-windows-x64.zip`, extract the complete archive, and run `Install.cmd`. For portable use, run `DeskflowAutoLock.exe` directly. See the [README](https://github.com/frankbrg/deskflow-game-lock#readme) for requirements, shortcuts, and removal instructions.
 
 ## Included
 
@@ -14,7 +12,7 @@ Première version publique / First public release.
 - Per-user installer/uninstaller and portable mode.
 - Automatic Deskflow lock based on Windows mouse confinement, not fullscreen.
 - Ctrl+Alt+F12 pause/resume, tray menu, and optional startup at sign-in.
-- French and English documentation, MIT license, and SHA-256 checksum.
+- English interface and documentation, MIT license, and SHA-256 checksum.
 
 ## Compatibility
 

@@ -21,12 +21,12 @@ try {
     } finally { $instance.Dispose() }
 } catch [Threading.WaitHandleCannotBeOpenedException] { }
 $runKey = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Run'
-$startup = Get-ItemPropertyValue -LiteralPath $runKey -Name DeskflowAutoLock -ErrorAction SilentlyContinue
+$startup = [Microsoft.Win32.Registry]::GetValue('HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run', 'DeskflowAutoLock', $null)
 if ($startup -eq ('"' + $exe + '"')) { Remove-ItemProperty -LiteralPath $runKey -Name DeskflowAutoLock }
 
 # Delete only known files, with native PowerShell operations and checked absolute paths.
 # Any extra files the user placed in the folder are preserved.
-$knownFiles = @('DeskflowAutoLock.exe', 'README.md', 'README.en.md', 'LICENSE', 'VERSION', 'Install.cmd', 'Install.ps1', 'Uninstall.cmd', 'Uninstall.ps1', '.deskflow-game-lock-install', 'activity.log', 'status.txt')
+$knownFiles = @('DeskflowAutoLock.exe', 'README.md', 'LICENSE', 'VERSION', 'Install.cmd', 'Install.ps1', 'Uninstall.cmd', 'Uninstall.ps1', '.deskflow-game-lock-install', 'activity.log', 'status.txt')
 foreach ($name in $knownFiles) {
     $path = [IO.Path]::GetFullPath((Join-Path $targetDirectory $name))
     if ((Split-Path -Parent $path) -ne $targetDirectory) { throw 'Unexpected uninstall path.' }
