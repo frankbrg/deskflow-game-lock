@@ -1,0 +1,77 @@
+name: Build, test and package
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      publish_release:
+        description: Publish the version from VERSION as a GitHub Release
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Build, run regression checks and package
+        shell: powershell
+        run: .\scripts\Build.ps1 -RunTests -Package
+      - name: Check installer syntax and preview installation
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          foreach ($path in @('install/Install.ps1', 'install/Uninstall.ps1', 'scripts/Build.ps1')) {
+            $tokens = $null
+            $errors = $null
+            [void][Management.Automation.Language.Parser]::ParseFile((Join-Path $PWD $path), [ref]$tokens, [ref]$errors)
+            if ($errors.Count) { throw ($errors | Out-String) }
+          }
+          $version = (Get-Content VERSION -Raw).Trim()
+          & ".\dist\deskflow-game-lock-v$version-windows-x64\Install.ps1" -WhatIf
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-release
+          path: |
+            dist/*.zip
+            dist/SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 14
+
+  publish:
+    needs: build
+    if: github.event_name == 'workflow_dispatch' && inputs.publish_release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: windows-release
+          path: dist
+      - name: Publish the built archive
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="$(tr -d '\r\n' < VERSION)"
+          [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || exit 1
+          gh release create "v$version" \
+            "dist/deskflow-game-lock-v$version-windows-x64.zip" \
+            dist/SHA256SUMS.txt \
+            --target "$GITHUB_SHA" \
+            --title "Deskflow Game Lock $version" \
+            --notes-file RELEASE-NOTES.md

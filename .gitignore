@@ -1,0 +1,10 @@
+/bin/
+/dist/
+*.exe
+*.pdb
+*.log
+status.txt
+*.lnk
+.vs/
+.idea/
+work/
